@@ -33,12 +33,12 @@ def docs():
 
 
 @pytest.fixture
- def update_docs():
-     return DocumentArray(
-         [
-             Document(id='doc1', embedding=np.array([0, 0, 0, 1])),
-         ]
-     )
+def update_docs():
+    return DocumentArray(
+        [
+            Document(id='doc1', embedding=np.array([0, 0, 0, 1])),
+        ]
+    )
 
 
 def test_config():
@@ -132,17 +132,17 @@ def test_delete(tmpdir, docs):
 
 
 def test_update(tmpdir, docs, update_docs):
-     metas = {'workspace': str(tmpdir)}
+    metas = {'workspace': str(tmpdir)}
 
-     # index docs first
-     indexer = SimpleIndexer(metas=metas)
-     indexer.index(docs)
-     assert_document_arrays_equal(indexer._storage, docs)
+    # index docs first
+    indexer = SimpleIndexer(metas=metas)
+    indexer.index(docs)
+    assert_document_arrays_equal(indexer._storage, docs)
 
-     # update first doc
-     indexer.update(update_docs)
-     assert indexer._storage[0].id == 'doc1'
-     assert (indexer._storage[0].embedding == [0, 0, 0, 1]).all()
+    # update first doc
+    indexer.update(update_docs)
+    assert indexer._storage[0].id == 'doc1'
+    assert (indexer._storage[0].embedding == [0, 0, 0, 1]).all()
 
 
 @pytest.mark.parametrize('metric', ['euclidean', 'cosine'])
