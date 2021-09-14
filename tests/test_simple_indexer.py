@@ -32,6 +32,15 @@ def docs():
     )
 
 
+@pytest.fixture
+ def update_docs():
+     return DocumentArray(
+         [
+             Document(id='doc1', embedding=np.array([0, 0, 0, 1])),
+         ]
+     )
+
+
 def test_config():
     ex = Executor.load_config(str(Path(__file__).parents[1] / 'config.yml'))
     assert ex._match_args == {}
@@ -122,6 +131,20 @@ def test_delete(tmpdir, docs):
     assert not indexer._storage
 
 
+def test_update(tmpdir, docs, update_docs):
+     metas = {'workspace': str(tmpdir)}
+
+     # index docs first
+     indexer = SimpleIndexer(metas=metas)
+     indexer.index(docs)
+     assert_document_arrays_equal(indexer._storage, docs)
+
+     # update first doc
+     indexer.update(update_docs)
+     assert indexer._storage[0].id == 'doc1'
+     assert (indexer._storage[0].embedding == [0, 0, 0, 1]).all()
+
+
 @pytest.mark.parametrize('metric', ['euclidean', 'cosine', 'sqeuclidean', 'hamming'])
 def test_search(tmpdir, metric, docs):
     metas = {'workspace': str(tmpdir)}
@@ -133,7 +156,7 @@ def test_search(tmpdir, metric, docs):
     search_docs = deepcopy(docs)
     indexer.search(search_docs)
     for i in range(len(docs)):
-        assert search_docs[i].matches[0].id == f'doc{i+1}'
+        assert search_docs[i].matches[0].id == f'doc{i + 1}'
 
     # test search from empty indexed docs
     shutil.rmtree(tmpdir)
