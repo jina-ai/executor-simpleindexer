@@ -1,23 +1,19 @@
 # SimpleIndexer
 
-
-## Usage
-
-#### via Docker image (recommended)
+`SimpleIndexer` is a memmap-based Indexer. It stores the documents in a folder that is
+specified by `workspace`, which can be defined using the `uses_metas` argument as such:
 
 ```python
-from jina import Flow
-	
-f = Flow().add(uses='jinahub+docker://SimpleIndexer')
+Flow.add(uses=SimpleIndexer, uses_metas={'workspace': 'workspace'})
 ```
 
-#### via source code
+To search documents, the `SimpleIndexer` leverages `DocumentArray`'s `match` function. 
+The arguments to the `match` function are specified by `match_args`, which can be defined
+using the `uses_with` argument as such:
 
 ```python
-from jina import Flow
-	
-f = Flow().add(uses='jinahub://SimpleIndexer')
+Flow.add(uses=SimpleIndexer,
+         uses_with={'match_args': {'metric': 'cosine', 'use_scipy': False}})
 ```
 
-- To override `__init__` args & kwargs, use `.add(..., uses_with: {'key': 'value'})`
-- To override class metas, use `.add(..., uses_metas: {'key': 'value})`
+For more information on the `match` function, please refer to the [documentation](https://docs.jina.ai/api/jina.types.arrays.neural_ops/).

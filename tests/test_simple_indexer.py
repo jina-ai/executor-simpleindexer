@@ -145,7 +145,7 @@ def test_update(tmpdir, docs, update_docs):
      assert (indexer._storage[0].embedding == [0, 0, 0, 1]).all()
 
 
-@pytest.mark.parametrize('metric', ['euclidean', 'cosine', 'sqeuclidean', 'hamming'])
+@pytest.mark.parametrize('metric', ['euclidean', 'cosine'])
 def test_search(tmpdir, metric, docs):
     metas = {'workspace': str(tmpdir)}
     match_args = {'metric': metric, 'use_scipy': 'metric' != 'hamming'}
