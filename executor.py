@@ -10,6 +10,7 @@ class SimpleIndexer(Executor):
     in a DocumentArrayMemmap object
 
     To be used as a unified indexer, combining both indexing and searching
+    :param match_args: the arguments to `DocumentArray`'s match function
     """
 
     def __init__(
@@ -19,7 +20,6 @@ class SimpleIndexer(Executor):
     ):
         """
         Initializer function for the simple indexer
-        :param match_args: the arguments to `DocumentArray`'s match function
         """
         super().__init__(**kwargs)
 
