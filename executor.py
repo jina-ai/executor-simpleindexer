@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 
-from jina import Executor, DocumentArray, requests
+from jina import DocumentArray, Executor, requests
 from jina.types.arrays.memmap import DocumentArrayMemmap
 
 
@@ -10,12 +10,13 @@ class SimpleIndexer(Executor):
     in a DocumentArrayMemmap object
 
     To be used as a unified indexer, combining both indexing and searching
+    :param match_args: the arguments to `DocumentArray`'s match function
     """
 
     def __init__(
-            self,
-            match_args: Optional[Dict] = None,
-            **kwargs,
+        self,
+        match_args: Optional[Dict] = None,
+        **kwargs,
     ):
         """
         Initializer function for the simple indexer
@@ -27,45 +28,35 @@ class SimpleIndexer(Executor):
 
     @requests(on='/index')
     def index(
-            self,
-            docs: Optional['DocumentArray'] = None,
-            parameters: Optional[Dict] = None,
-            **kwargs,
+        self,
+        docs: Optional['DocumentArray'] = None,
+        **kwargs,
     ):
         """All Documents to the DocumentArray
         :param docs: the docs to add
-        :param parameters: the parameters dictionary
         """
         self._storage.extend(docs)
 
     @requests(on='/search')
     def search(
-            self,
-            docs: Optional['DocumentArray'] = None,
-            parameters: Optional[Dict] = None,
-            **kwargs,
+        self,
+        docs: Optional['DocumentArray'] = None,
+        **kwargs,
     ):
         """Perform a vector similarity search and retrieve the full Document match
 
-        :param docs: the Documents to search with
-        :param parameters: the parameters for the search"""
+        :param docs: the Documents to search with"""
 
-        docs.match(
-            self._storage,
-            **self._match_args
-        )
+        docs.match(self._storage, **self._match_args)
 
     @requests(on='/delete')
-    def delete(self, parameters: Optional[Dict] = None, **kwargs):
+    def delete(self, parameters: Dict, **kwargs):
         """Delete entries from the index by id
 
-        :param docs: the documents to delete
         :param parameters: parameters to the request
         """
 
-        deleted_ids = parameters.get(
-            'ids', []
-        )
+        deleted_ids = parameters.get('ids', [])
 
         for idx in deleted_ids:
             if idx in self._storage:
@@ -76,7 +67,6 @@ class SimpleIndexer(Executor):
         """Update doc with the same id, if not present, append into storage
 
         :param docs: the documents to update
-        :param parameters: parameters to the request
         """
 
         for doc in docs:
