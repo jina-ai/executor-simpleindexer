@@ -1,10 +1,10 @@
 # SimpleIndexer
 
-`SimpleIndexer` is a memmap-based Indexer. It stores the documents in a folder that is
+`SimpleIndexer` is a [mmap](https://docs.python.org/3/library/mmap.html)-based Indexer. It stores the documents in a folder that is
 specified by `workspace`, which can be defined using the `uses_metas` argument as such:
 
 ```python
-Flow.add(uses=SimpleIndexer, uses_metas={'workspace': 'workspace'})
+Flow().add(uses=SimpleIndexer, uses_metas={'workspace': 'workspace'})
 ```
 
 To search documents, the `SimpleIndexer` leverages `DocumentArray`'s `match` function. 
@@ -12,7 +12,7 @@ The arguments to the `match` function are specified by `match_args`, which can b
 using the `uses_with` argument as such:
 
 ```python
-Flow.add(uses=SimpleIndexer,
+Flow().add(uses=SimpleIndexer,
          uses_with={'match_args': {'metric': 'cosine', 'use_scipy': False}})
 ```
 

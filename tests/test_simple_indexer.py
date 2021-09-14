@@ -58,7 +58,6 @@ def test_flow(tmpdir):
             inputs=[Document(id='a', embedding=np.array([1]))],
             return_results=True,
         )
-        print(f'{resp}')
         resp = f.post(
             on='/search',
             inputs=[Document(embedding=np.array([1]))],
