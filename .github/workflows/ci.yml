@@ -1,0 +1,38 @@
+name: CI
+
+on: [pull_request]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.7"
+      - name: Install latest stable 2.x jina version
+        run: |
+          JINA_VERSION=$(curl -L -s "https://pypi.org/pypi/jina/json" \
+            |  jq  -r '.releases | keys | .[]
+              | select(contains("dev") | not)
+              | select(startswith("2."))' \
+            | sort -V | tail -1)
+          pip install git+https://github.com/jina-ai/jina.git@v${JINA_VERSION}
+      - name: Python requirements
+        run: pip install -r tests/requirements.txt
+      - name: Create Dockerfile, if needed
+        run: |
+          if [[ ! -f "Dockerfile" ]]; then
+            docker run --entrypoint="normalizer" -v "$(pwd):/workspace" \
+            jinahub/hubble-normalizer:v0.1.0 . --jina-version=2
+            sudo chown -R $(id -u ${USER}):$(id -g ${USER}) . ; fi
+      - name: Run unit tests
+        run: pytest -s -v -m "not gpu"
+      - name: run docker tests
+        run: |
+          bash ./.github/workflows/scripts/test_docker.sh .
+
