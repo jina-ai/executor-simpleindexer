@@ -148,7 +148,7 @@ def test_update(tmpdir, docs, update_docs):
 @pytest.mark.parametrize('metric', ['euclidean', 'cosine'])
 def test_search(tmpdir, metric, docs):
     metas = {'workspace': str(tmpdir)}
-    match_args = {'metric': metric, 'use_scipy': 'metric' != 'hamming'}
+    match_args = {'metric': metric}
 
     # test general/normal case
     indexer = SimpleIndexer(match_args=match_args, metas=metas)
