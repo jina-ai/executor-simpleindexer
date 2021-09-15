@@ -15,7 +15,9 @@ if [[ -f "Dockerfile" ]]; then
   python -m venv .venv
   source .venv/bin/activate
   pip install wheel docker jina
-  pip install -r requirements.txt
+  if [[ -f "requirements.txt" ]]; then
+    pip install -r requirements.txt
+  fi
 
   if [[ -f "tests/requirements.txt" ]]; then
     pip install -r tests/requirements.txt
