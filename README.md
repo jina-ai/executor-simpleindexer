@@ -16,4 +16,4 @@ Flow().add(uses=SimpleIndexer,
          uses_with={'match_args': {'metric': 'cosine', 'use_scipy': False}})
 ```
 
-For more information on the `match` function, please refer to the [documentation](https://docs.jina.ai/api/jina.types.arrays.neural_ops/).
+For more information on the `match` function, please refer to the [documentation](https://docs.jina.ai/api/jina.types.arrays.neural_ops/#jina.types.arrays.neural_ops.DocumentArrayNeuralOpsMixin.match).

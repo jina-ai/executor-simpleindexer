@@ -5,7 +5,7 @@ on:
     branches:
     - $default-branch
   workflow_dispatch:
-  pull_request:
+  #pull_request:
 
 jobs:
   push-executors:
