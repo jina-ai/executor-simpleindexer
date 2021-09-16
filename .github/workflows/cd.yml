@@ -5,19 +5,30 @@ on:
     branches:
       - main
   workflow_dispatch:
-#  pull_request:
+  pull_request:
 
 jobs:
   push-executors:
     runs-on: ubuntu-latest
-    container:
-      image: jinaai/jina:master-standard
-      options: "--entrypoint /bin/bash"
     steps:
+      - name: install git
+        run: |
+          # checkout needs git >= 2.18 to check out repo as git repo and not archive
+          # repo is needed for getting tag
+          sudo apt-get update && sudo apt-get install -y git && sudo apt-get upgrade git
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Get previous tag
+        id: previoustag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+        with:
+          fallback: ""
       - name: push to Hubble
         run: |
           bash ./.github/workflows/scripts/push.sh .
         env:
           token: ${{ secrets.GH_TOKEN }}
+          GIT_TAG: ${{ steps.previoustag.outputs.tag }}
+
