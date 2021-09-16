@@ -35,4 +35,24 @@ echo SECRET=`head -c 3 <(echo $exec_secret)`
 
 rm secrets.json
 
+# we only push to a tag once,
+# if it doesn't exist
+echo git tag = $GIT_TAG
+
+if [ -z "$GIT_TAG" ]
+then
+  echo WARNING, no git tag!
+else
+  echo git tag = $GIT_TAG
+  jina hub pull jinahub+docker://$exec_name/$GIT_TAG
+  exists=`$?`
+  if [[ $exists == 1 ]]; then
+    echo does NOT exist, pushing
+    jina hub push --force $exec_uuid --secret $exec_secret . -t $GIT_TAG
+  else
+    echo exists, will NOT push
+  fi
+fi
+
+# we push to latest every time
 jina hub push --force $exec_uuid --secret $exec_secret .
