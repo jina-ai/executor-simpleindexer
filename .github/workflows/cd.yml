@@ -5,17 +5,12 @@ on:
     branches:
       - main
   workflow_dispatch:
-  pull_request:
+#  pull_request:
 
 jobs:
   push-executors:
     runs-on: ubuntu-latest
     steps:
-      - name: install git
-        run: |
-          # checkout needs git >= 2.18 to check out repo as git repo and not archive
-          # repo is needed for getting tag
-          sudo apt-get update && sudo apt-get install -y git && sudo apt-get upgrade git
       - name: Checkout
         uses: actions/checkout@v2
         with:

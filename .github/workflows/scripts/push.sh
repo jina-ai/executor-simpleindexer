@@ -61,5 +61,3 @@ else
     jina hub push --force $exec_uuid --secret $exec_secret .
   fi
 fi
-
-# we push to latest every time
