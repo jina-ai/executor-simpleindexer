@@ -54,12 +54,12 @@ else
   jina hub pull jinahub+docker://$exec_name/$GIT_TAG
   exists=$?
   if [[ $exists == 1 ]]; then
-    echo does NOT exist, pushing
-    jina hub push --force $exec_uuid --secret $exec_secret . -t $GIT_TAG
+    echo does NOT exist, pushing to latest and $GIT_TAG
+    jina hub push --force $exec_uuid --secret $exec_secret . -t $GIT_TAG -t latest
   else
-    echo exists, will NOT push
+    echo exists, only push to latest
+    jina hub push --force $exec_uuid --secret $exec_secret .
   fi
 fi
 
 # we push to latest every time
-jina hub push --force $exec_uuid --secret $exec_secret .
