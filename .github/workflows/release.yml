@@ -21,6 +21,7 @@ jobs:
           echo "::set-output name=tag::${GITHUB_REF#refs/tags/}"
       - name: push to Hubble
         run: |
+          echo ${{ steps.get_version.outputs.tag }}
           bash ./.github/workflows/scripts/push.sh .
         env:
           token: ${{ secrets.GH_TOKEN }}
