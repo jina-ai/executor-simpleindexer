@@ -1,0 +1,27 @@
+name: release
+
+on:
+  release:
+    types:
+      - created
+  workflow_dispatch:
+
+jobs:
+  push-executors:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Get the version
+        id: get_version
+        run: |
+          [[ ! "$GITHUB_REF" =~ refs/tags ]] && exit
+          echo "::set-output name=tag::${GITHUB_REF#refs/tags/}"
+      - name: push to Hubble
+        run: |
+          bash ./.github/workflows/scripts/push.sh .
+        env:
+          token: ${{ secrets.GH_TOKEN }}
+          GIT_TAG: ${{ steps.get_version.outputs.tag }}
