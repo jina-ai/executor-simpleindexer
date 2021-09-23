@@ -158,12 +158,12 @@ def test_search(tmpdir, metric, docs):
         assert search_docs[i].matches[0].id == f'doc{i + 1}'
         assert len(search_docs[i].matches) == len(docs)
 
-    # test search with top_k = 1
+    # test search with top_k/limit = 1
     indexer.search(search_docs, parameters={'match_args': {'limit': 1}})
     for i in range(len(docs)):
         assert len(search_docs[i].matches) == 1
 
-    # test search with deafult limit/topk again
+    # test search with default limit/top_k again
     # indexer._match_args should not change as a result of the previous operation
     # so expected length of matches should be the same as the first case
     indexer.search(search_docs)
