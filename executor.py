@@ -47,10 +47,12 @@ class SimpleIndexer(Executor):
     ):
         """Perform a vector similarity search and retrieve the full Document match
 
-        :param docs: the Documents to search with"""
+        :param docs: the Documents to search with
+        :param parameters: the runtime arguments to `DocumentArray`'s match function. They overwrite the original match_args arguments.
+        """
         match_args = deepcopy(self._match_args)
-        if parameters and 'match_args' in parameters:
-            match_args.update(parameters['match_args'])
+        if parameters:
+            match_args.update(parameters)
         docs.match(self._storage, **match_args)
 
     @requests(on='/delete')

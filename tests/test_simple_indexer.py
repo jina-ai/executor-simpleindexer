@@ -159,7 +159,7 @@ def test_search(tmpdir, metric, docs):
         assert len(search_docs[i].matches) == len(docs)
 
     # test search with top_k/limit = 1
-    indexer.search(search_docs, parameters={'match_args': {'limit': 1}})
+    indexer.search(search_docs, parameters={'limit': 1})
     for i in range(len(docs)):
         assert len(search_docs[i].matches) == 1
 
