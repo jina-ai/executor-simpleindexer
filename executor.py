@@ -64,10 +64,6 @@ class SimpleIndexer(Executor):
 
         :param parameters: parameters to the request
         """
-
-        if not docs:
-            return
-
         deleted_ids = parameters.get('ids', [])
 
         for idx in deleted_ids:
@@ -95,6 +91,6 @@ class SimpleIndexer(Executor):
         """
         if not docs:
             return
-        
+
         for doc in docs:
             doc.embedding = self._storage[doc.id].embedding
