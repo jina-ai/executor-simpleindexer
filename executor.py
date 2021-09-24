@@ -36,7 +36,8 @@ class SimpleIndexer(Executor):
         """All Documents to the DocumentArray
         :param docs: the docs to add
         """
-        self._storage.extend(docs)
+        if docs:
+            self._storage.extend(docs)
 
     @requests(on='/search')
     def search(
@@ -50,6 +51,8 @@ class SimpleIndexer(Executor):
         :param docs: the Documents to search with
         :param parameters: the runtime arguments to `DocumentArray`'s match function. They overwrite the original match_args arguments.
         """
+        if not docs:
+            return
         match_args = deepcopy(self._match_args)
         if parameters:
             match_args.update(parameters)
@@ -61,7 +64,6 @@ class SimpleIndexer(Executor):
 
         :param parameters: parameters to the request
         """
-
         deleted_ids = parameters.get('ids', [])
 
         for idx in deleted_ids:
@@ -75,6 +77,9 @@ class SimpleIndexer(Executor):
         :param docs: the documents to update
         """
 
+        if not docs:
+            return
+
         for doc in docs:
             self._storage[doc.id] = doc
 
@@ -84,5 +89,8 @@ class SimpleIndexer(Executor):
 
         :param docs: DocumentArray to search with
         """
+        if not docs:
+            return
+
         for doc in docs:
             doc.embedding = self._storage[doc.id].embedding
