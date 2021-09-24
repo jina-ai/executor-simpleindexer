@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Dict, Optional
 
 from jina import DocumentArray, Executor, requests
@@ -41,13 +42,18 @@ class SimpleIndexer(Executor):
     def search(
         self,
         docs: Optional['DocumentArray'] = None,
+        parameters: Optional[Dict] = None,
         **kwargs,
     ):
         """Perform a vector similarity search and retrieve the full Document match
 
-        :param docs: the Documents to search with"""
-
-        docs.match(self._storage, **self._match_args)
+        :param docs: the Documents to search with
+        :param parameters: the runtime arguments to `DocumentArray`'s match function. They overwrite the original match_args arguments.
+        """
+        match_args = deepcopy(self._match_args)
+        if parameters:
+            match_args.update(parameters)
+        docs.match(self._storage, **match_args)
 
     @requests(on='/delete')
     def delete(self, parameters: Dict, **kwargs):
