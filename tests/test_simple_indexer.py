@@ -180,3 +180,9 @@ def test_search(tmpdir, metric, docs):
 
     # test search empty docs
     indexer.search(DocumentArray())
+
+
+def test_empty_docs(tmp_path):
+    metas = {'workspace': str(tmp_path / 'workspace')}
+    indexer = SimpleIndexer(metas=metas)
+    indexer.index(docs=None)
