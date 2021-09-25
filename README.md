@@ -36,8 +36,5 @@ Flow().add(
 - [Find Similar Audio Clips](https://github.com/jina-ai/examples/tree/master/audio-to-audio-search)
 
 
-## See Also
-- [FaissPostgresIndexer](https://hub.jina.ai/executor/ugatwtp8)
-
 ## Reference
 - [Indexers on Jina Hub](https://docs.jina.ai/advanced/experimental/indexers/)
