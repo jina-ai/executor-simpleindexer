@@ -42,6 +42,15 @@ echo SECRET=`head -c 3 <(echo $exec_secret)`
 
 rm secrets.json
 
+echo GIT_TAG_CUSTOM = $GIT_TAG_CUSTOM
+echo GIT_TAG_ACTION = $GIT_TAG_ACTION
+
+export GIT_TAG=$GIT_TAG_ACTION
+if [ -z "$GIT_TAG" ]
+then
+  export GIT_TAG=$GIT_TAG_CUSTOM
+fi
+
 # we only push to a tag once,
 # if it doesn't exist
 echo git tag = $GIT_TAG
