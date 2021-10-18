@@ -186,3 +186,56 @@ def test_empty_docs(tmp_path):
     metas = {'workspace': str(tmp_path / 'workspace')}
     indexer = SimpleIndexer(metas=metas)
     indexer.index(docs=None)
+
+
+def test_index_with_no_embedding(tmp_path, docs):
+    metas = {'workspace': str(tmp_path)}
+    indexer = SimpleIndexer(metas=metas)
+    indexer.index(DocumentArray([Document(id='no_embedding1')]))
+    assert len(indexer._storage) == 0
+    assert 'no_embedding1' not in indexer._storage.get_attributes('id')
+    indexer.index(docs)
+    assert len(indexer._storage) == 6
+    indexer.index(DocumentArray([Document(id='no_embedding2')]))
+    assert len(indexer._storage) == 6
+    assert 'no_embedding2' not in indexer._storage.get_attributes('id')
+
+
+def test_index_with_invalid_embedding_shape(tmp_path, docs):
+    metas = {'workspace': str(tmp_path)}
+    indexer = SimpleIndexer(metas=metas)
+    indexer.index(docs)
+    assert len(indexer._storage) == 6
+    indexer.index(
+        DocumentArray([Document(id='invalid_shape', embedding=np.array([1, 2]))])
+    )
+    assert len(indexer._storage) == 6
+    assert 'invalid_shape' not in indexer._storage.get_attributes('id')
+
+
+def test_search_query_with_different_embedding_shape(tmp_path, docs):
+    # search a doc with embedding shape (3,) and match with index
+    # docs all with embedding shape (4,), assert error is raised
+    pass
+
+
+def test_search_query_with_no_embedding_valid_index(tmp_path, docs):
+    # search a doc with no embedding against valid index (valid embedding shape),
+    # assert error is raised
+    pass
+
+
+def test_search_query_with_no_embedding_invalid_index(tmp_path, docs):
+    # search a doc with no embedding against invalid index
+    # assert that after _filter is called the expected error is still raised
+    pass
+
+
+def test_search_query_with_invalid_index(tmp_path, docs):
+    # assert that no error is raised after filtering index
+    pass
+
+
+def test_filter(tmp_path, docs):
+    # test the _filter function
+    pass
