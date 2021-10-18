@@ -8,36 +8,13 @@ on:
     types:
       - created
   workflow_dispatch:
-#  pull_request:
-  # uncomment the above to test
+  pull_request:
+  # uncomment the above to test CD in a PR
 
 jobs:
-  push-executors:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-        # the action doesn't work on release events
-      - name: Get previous tag
-        if: ${{ github.event_name != 'release' }}
-        id: previous_tag_action
-        uses: "WyriHaximus/github-action-get-previous-tag@v1"
-        with:
-          fallback: ""
-        # this only works for newly released tags
-      - name: Get the version we just released
-        if: ${{ github.event_name == 'release' }}
-        id: previous_tag_custom
-        run: |
-          [[ ! "$GITHUB_REF" =~ refs/tags ]] && exit
-          echo "::set-output name=tag::${GITHUB_REF#refs/tags/}"
-      - name: push to Hubble
-        run: |
-          bash ./.github/workflows/scripts/push.sh .
-        env:
-          token: ${{ secrets.GH_TOKEN }}
-          GIT_TAG_ACTION: ${{ steps.previous_tag_action.outputs.tag }}
-          GIT_TAG_CUSTOM: ${{ steps.previous_tag_custom.outputs.tag }}
-
+  call-external:
+    uses: jina-ai/workflows-executors/.github/workflows/cd.yml@master
+    with:
+      event_name: ${{ github.event_name }}
+    secrets:
+      secret: ${{ secrets.EXECUTOR_SECRET }}
