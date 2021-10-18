@@ -89,7 +89,7 @@ class SimpleIndexer(Executor):
         docs.match(self._storage, **match_args)
 
     def _filter(self):
-        if not self._docs:
+        if not self._storage:
             return
 
         doc_id_embeddings = [(doc.id, doc.embedding) for doc in self._storage]
@@ -99,7 +99,7 @@ class SimpleIndexer(Executor):
                     f'filtering storage - embedding of doc {doc.id} is either None '
                     'or has mismatched embedding shape, delete this doc from storage'
                 )
-                del self._docs[_id]
+                del self._storage[_id]
 
     @property
     def embedding_shape(self):
