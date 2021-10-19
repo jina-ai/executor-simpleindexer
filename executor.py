@@ -26,9 +26,11 @@ class SimpleIndexer(Executor):
         super().__init__(**kwargs)
 
         self._match_args = match_args or {}
-        self._storage = DocumentArrayMemmap(self.workspace)
+        self._storage = DocumentArrayMemmap(
+            self.workspace, key_length=kwargs.get('key_length', 64)
+        )
         self._embedding_shape = None
-        self.logger = JinaLogger('simple_indexer')
+        self.logger = JinaLogger(self.metas.name)
 
     @requests(on='/index')
     def index(
@@ -42,6 +44,7 @@ class SimpleIndexer(Executor):
         if not docs:
             return
 
+        self._filter()
         for doc in docs:
             if doc.embedding is None:
                 self.logger.warning(
@@ -80,23 +83,19 @@ class SimpleIndexer(Executor):
         match_args = deepcopy(self._match_args)
         if parameters:
             match_args.update(parameters)
-        try:
-            docs.match(self._storage, **match_args)
-            return
-        except ValueError as e:
-            self._filter()
-
         docs.match(self._storage, **match_args)
 
     def _filter(self):
         if not self._storage:
             return
 
-        doc_id_embeddings = [(doc.id, doc.embedding) for doc in self._storage]
-        for _id, embedding in doc_id_embeddings:
-            if embedding is None or embedding.shape != self.embedding_shape:
+        doc_id_embed_shapes = [
+            (doc.id, getattr(doc.embedding, 'shape', None)) for doc in self._storage
+        ]
+        for _id, shape in doc_id_embed_shapes:
+            if shape is None or shape != self.embedding_shape:
                 self.logger.warning(
-                    f'filtering storage - embedding of doc {doc.id} is either None '
+                    f'filtering storage - embedding of doc {_id} is either None '
                     'or has mismatched embedding shape, delete this doc from storage'
                 )
                 del self._storage[_id]

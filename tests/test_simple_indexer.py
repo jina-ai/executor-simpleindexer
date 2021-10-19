@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from jina import Document, DocumentArray, Executor, Flow
+from jina import Document, DocumentArray, Executor, Flow, DocumentArrayMemmap
 
 from executor import SimpleIndexer
 
@@ -216,26 +216,70 @@ def test_index_with_invalid_embedding_shape(tmp_path, docs):
 def test_search_query_with_different_embedding_shape(tmp_path, docs):
     # search a doc with embedding shape (3,) and match with index
     # docs all with embedding shape (4,), assert error is raised
-    pass
+    metas = {'workspace': str(tmp_path)}
+    indexer = SimpleIndexer(metas=metas)
+    indexer.index(docs)
+    assert len(indexer._storage) == 6
+    with pytest.raises(
+        ValueError,
+        match='shapes \(1,3\) and \(4,6\) not aligned: 3 \(dim 1\) != 4 \(dim 0\)',
+    ):
+        indexer.search(DocumentArray([Document(embedding=np.array([1, 2, 3]))]))
 
 
 def test_search_query_with_no_embedding_valid_index(tmp_path, docs):
     # search a doc with no embedding against valid index (valid embedding shape),
     # assert error is raised
-    pass
+    metas = {'workspace': str(tmp_path)}
+    indexer = SimpleIndexer(metas=metas)
+    indexer.index(docs)
+    assert len(indexer._storage) == 6
+    with pytest.raises(
+        ValueError,
+        match='shapes \(1,3\) and \(4,6\) not aligned: 3 \(dim 1\) != 4 \(dim 0\)',
+    ):
+        indexer.search(DocumentArray([Document(embedding=np.array([1, 2, 3]))]))
 
 
 def test_search_query_with_no_embedding_invalid_index(tmp_path, docs):
     # search a doc with no embedding against invalid index
     # assert that after _filter is called the expected error is still raised
-    pass
+    metas = {'workspace': str(tmp_path)}
+    indexer = SimpleIndexer(metas=metas)
+    indexer.index(docs)
+    assert len(indexer._storage) == 6
+    with pytest.raises(TypeError, match='data type \'\' not understood'):
+        indexer.search(DocumentArray([Document()]))
 
 
 def test_search_query_with_invalid_index(tmp_path, docs):
     # assert that no error is raised after filtering index
-    pass
+    metas = {'workspace': str(tmp_path)}
+    indexer = SimpleIndexer(metas=metas)
+    indexer.index(docs)
+    indexer._storage.append(Document(embedding=np.array([1, 2])))
+    assert len(indexer._storage) == 7
+    indexer.index(DocumentArray(Document()))
+    assert len(indexer._storage) == 6
+    assert indexer.embedding_shape == (4,)
+    indexer.search(DocumentArray([Document(embedding=np.array([1, 0, 0, 0]))]))
 
 
 def test_filter(tmp_path, docs):
     # test the _filter function
+    dam = DocumentArrayMemmap(str(tmp_path / 'SimpleIndexer'), key_length=64)
+    dam.append(Document())
+    metas = {'workspace': str(tmp_path)}
+    indexer = SimpleIndexer(metas=metas)
+    indexer._storage.append(Document(embedding=np.array([1, 2])))
+    indexer._storage.append(Document(embedding=np.array([1, 2, 3, 4, 5])))
+    indexer._storage.append(Document())
+    assert len(indexer._storage) == 4
+    indexer._filter()
+    assert len(indexer._storage) == 1
+    assert indexer.embedding_shape == (2,)
+
+
+def test_embedding_shape_after_delete(tmp_path, docs):
+    # wip
     pass
