@@ -1,10 +1,9 @@
-import shutil
-from copy import deepcopy
-from pathlib import Path
-
 import numpy as np
 import pytest
+import shutil
+from copy import deepcopy
 from jina import Document, DocumentArray, Executor, Flow
+from pathlib import Path
 
 from executor import SimpleIndexer
 
@@ -186,3 +185,11 @@ def test_empty_docs(tmp_path):
     metas = {'workspace': str(tmp_path / 'workspace')}
     indexer = SimpleIndexer(metas=metas)
     indexer.index(docs=None)
+
+
+def test_unexpected_kwargs(tmp_path, docs):
+    metas = {'workspace': str(tmp_path / 'workspace')}
+    indexer = SimpleIndexer(metas=metas)
+    indexer.index(docs=docs)
+    indexer.search(docs, parameters={'unknown': 1, 'limit': 1, 'self': 2})
+    assert len(docs[0].matches) == 1
