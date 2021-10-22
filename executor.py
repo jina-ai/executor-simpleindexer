@@ -1,5 +1,6 @@
 from copy import deepcopy
 from typing import Dict, Optional
+import inspect
 
 from jina import DocumentArray, Executor, requests
 from jina.types.arrays.memmap import DocumentArrayMemmap
@@ -14,9 +15,9 @@ class SimpleIndexer(Executor):
     """
 
     def __init__(
-        self,
-        match_args: Optional[Dict] = None,
-        **kwargs,
+            self,
+            match_args: Optional[Dict] = None,
+            **kwargs,
     ):
         """
         Initializer function for the simple indexer
@@ -29,9 +30,9 @@ class SimpleIndexer(Executor):
 
     @requests(on='/index')
     def index(
-        self,
-        docs: Optional['DocumentArray'] = None,
-        **kwargs,
+            self,
+            docs: Optional['DocumentArray'] = None,
+            **kwargs,
     ):
         """All Documents to the DocumentArray
         :param docs: the docs to add
@@ -41,22 +42,34 @@ class SimpleIndexer(Executor):
 
     @requests(on='/search')
     def search(
-        self,
-        docs: Optional['DocumentArray'] = None,
-        parameters: Optional[Dict] = None,
-        **kwargs,
+            self,
+            docs: Optional['DocumentArray'] = None,
+            parameters: Optional[Dict] = None,
+            **kwargs,
     ):
         """Perform a vector similarity search and retrieve the full Document match
 
         :param docs: the Documents to search with
-        :param parameters: the runtime arguments to `DocumentArray`'s match function. They overwrite the original match_args arguments.
+        :param parameters: the runtime arguments to `DocumentArray`'s match
+        function. They overwrite the original match_args arguments.
         """
         if not docs:
             return
         match_args = deepcopy(self._match_args)
         if parameters:
             match_args.update(parameters)
+
+        match_args = SimpleIndexer._filter_parameters(docs, match_args)
+
         docs.match(self._storage, **match_args)
+
+    @staticmethod
+    def _filter_parameters(docs, match_args):
+        # get only those arguments that exist in .match
+        args = set(inspect.getfullargspec(docs.match).args)
+        args.discard('self')
+        match_args = {k: v for k, v in match_args.items() if k in args}
+        return match_args
 
     @requests(on='/delete')
     def delete(self, parameters: Dict, **kwargs):
