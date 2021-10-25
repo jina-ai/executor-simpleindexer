@@ -98,12 +98,12 @@ class SimpleIndexer(Executor):
             return
 
         for doc in docs:
-            if doc.id not in self._storage:
+            try:
+                self._storage[doc.id] = doc
+            except IndexError:
                 self.logger.warning(
                     f'cannot update doc {doc.id} as it does not exist in storage'
                 )
-                continue
-            self._storage[doc.id] = doc
 
     @requests(on='/fill_embedding')
     def fill_embedding(self, docs: Optional[DocumentArray], **kwargs):
