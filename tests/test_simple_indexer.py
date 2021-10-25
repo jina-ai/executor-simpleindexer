@@ -193,3 +193,26 @@ def test_unexpected_kwargs(tmp_path, docs):
     indexer.index(docs=docs)
     indexer.search(docs, parameters={'unknown': 1, 'limit': 1, 'self': 2})
     assert len(docs[0].matches) == 1
+
+
+def test_inavlid_embedding_indices(tmp_path, docs):
+    metas = {'workspace': str(tmp_path / 'workspace')}
+    indexer = SimpleIndexer(metas=metas)
+    indexer.index(docs)
+    indexer.index(DocumentArray([Document(), Document(embedding=np.array([1]))]))
+    query = DocumentArray([Document(embedding=np.array([1, 0, 0, 0]))])
+    indexer.search(query, match_args={'limit': len(indexer._storage)})
+    # added two invalid docs to index and they should be filtered out, hence subtract 2
+    assert len(query[0].matches) == len(indexer._storage) - 2
+
+
+def test_invalid_embedding_query(tmp_path, docs):
+    metas = {'workspace': str(tmp_path / 'workspace')}
+    indexer = SimpleIndexer(metas=metas)
+    indexer.index(docs)
+    indexer.index(DocumentArray([Document(), Document(embedding=np.array([1]))]))
+    with pytest.raises(
+        ValueError,
+        match='shapes \(1,2\) and \(4,6\) not aligned: 2 \(dim 1\) != 4 \(dim 0\)',
+    ):
+        indexer.search(DocumentArray([Document(embedding=np.array([1, 0]))]))
