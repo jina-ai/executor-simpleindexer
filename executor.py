@@ -3,6 +3,7 @@ from typing import Dict, Optional
 import inspect
 
 from jina import DocumentArray, Executor, requests
+from jina.logging.logger import JinaLogger
 from jina.types.arrays.memmap import DocumentArrayMemmap
 
 
@@ -15,9 +16,9 @@ class SimpleIndexer(Executor):
     """
 
     def __init__(
-            self,
-            match_args: Optional[Dict] = None,
-            **kwargs,
+        self,
+        match_args: Optional[Dict] = None,
+        **kwargs,
     ):
         """
         Initializer function for the simple indexer
@@ -26,13 +27,16 @@ class SimpleIndexer(Executor):
         super().__init__(**kwargs)
 
         self._match_args = match_args or {}
-        self._storage = DocumentArrayMemmap(self.workspace)
+        self._storage = DocumentArrayMemmap(
+            self.workspace, key_length=kwargs.get('key_length', 64)
+        )
+        self.logger = JinaLogger(self.metas.name)
 
     @requests(on='/index')
     def index(
-            self,
-            docs: Optional['DocumentArray'] = None,
-            **kwargs,
+        self,
+        docs: Optional['DocumentArray'] = None,
+        **kwargs,
     ):
         """All Documents to the DocumentArray
         :param docs: the docs to add
@@ -42,10 +46,10 @@ class SimpleIndexer(Executor):
 
     @requests(on='/search')
     def search(
-            self,
-            docs: Optional['DocumentArray'] = None,
-            parameters: Optional[Dict] = None,
-            **kwargs,
+        self,
+        docs: Optional['DocumentArray'] = None,
+        parameters: Optional[Dict] = None,
+        **kwargs,
     ):
         """Perform a vector similarity search and retrieve the full Document match
 
@@ -61,7 +65,7 @@ class SimpleIndexer(Executor):
 
         match_args = SimpleIndexer._filter_parameters(docs, match_args)
 
-        docs.match(self._storage, **match_args)
+        docs.match(self._storage, filter_fn=self._filter_fn(), **match_args)
 
     @staticmethod
     def _filter_parameters(docs, match_args):
@@ -94,6 +98,11 @@ class SimpleIndexer(Executor):
             return
 
         for doc in docs:
+            if doc.id not in self._storage:
+                self.logger.warning(
+                    f'cannot update doc {doc.id} as it does not exist in storage'
+                )
+                continue
             self._storage[doc.id] = doc
 
     @requests(on='/fill_embedding')
@@ -107,3 +116,15 @@ class SimpleIndexer(Executor):
 
         for doc in docs:
             doc.embedding = self._storage[doc.id].embedding
+
+    def _filter_fn(self):
+        shape = None
+
+        def valid(doc):
+            nonlocal shape
+            if doc.embedding is None:
+                return False
+            shape = shape or doc.embedding.shape
+            return shape == doc.embedding.shape
+
+        return valid
