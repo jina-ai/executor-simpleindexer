@@ -2,7 +2,7 @@
 
 `SimpleIndexer` use `DocumentArrayMemmap` for indexing `Document`. It is recommended to be used in most of the simple use cases when you have less than one million `Document`. 
 
-`SimpleIndexer` leverages `DocumentArrayMmap`'s [`match`](https://docs.jina.ai/api/jina.types.arrays.abstract/#jina.types.arrays.abstract.AbstractDocumentArray.match) function and searches the `k` nearst neighbors for the query `Document` based on their `embedding` field by the brutal-force search. By default, it calculates the `cosine` distance and returns all the indexed `Document`.
+`SimpleIndexer` leverages `DocumentArrayMmap`'s [`match`](https://docs.jina.ai/api/jina.types.arrays.neural_ops/?jina.types.arrays.neural_ops.DocumentArrayNeuralOpsMixin.match#jina.types.arrays.neural_ops.DocumentArrayNeuralOpsMixin.match) function and searches the `k` nearst neighbors for the query `Document` based on their `embedding` field by the brutal-force search. By default, it calculates the `cosine` distance and returns all the indexed `Document`.
 
 
 
@@ -30,7 +30,7 @@ f =  Flow().add(
 ```
 	
 - For more details about overriding [`with`](https://docs.jina.ai/fundamentals/executor/executor-built-in-features/#yaml-interface) configurations, please refer to [here](https://docs.jina.ai/fundamentals/flow/add-exec-to-flow/#override-with-configuration). 
-- You can find more about the `match` function at [here](https://docs.jina.ai/api/jina.types.arrays.abstract/#jina.types.arrays.abstract.AbstractDocumentArray.match)
+- You can find more about the `match` function at [here](https://docs.jina.ai/api/jina.types.arrays.neural_ops/?jina.types.arrays.neural_ops.DocumentArrayNeuralOpsMixin.match#jina.types.arrays.neural_ops.DocumentArrayNeuralOpsMixin.match)
 
 
 
