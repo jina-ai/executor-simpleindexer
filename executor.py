@@ -18,17 +18,21 @@ class SimpleIndexer(Executor):
     def __init__(
         self,
         match_args: Optional[Dict] = None,
+        key_length: int = 64,
+        override_storage_path: str = None,
         **kwargs,
     ):
         """
         Initializer function for the simple indexer
         :param match_args: the arguments to `DocumentArray`'s match function
+        :param override_storage_path: the `path` argument to `DocumentArrayMemmap`'s match function
+        :param key_length: the `key_length` keyword argument to `DocumentArrayMemmap`'s constructor
         """
         super().__init__(**kwargs)
 
         self._match_args = match_args or {}
         self._storage = DocumentArrayMemmap(
-            self.workspace, key_length=kwargs.get('key_length', 64)
+            override_storage_path or self.workspace, key_length = key_length
         )
         self.logger = JinaLogger(self.metas.name)
 
