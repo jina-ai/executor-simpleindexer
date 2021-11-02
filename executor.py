@@ -18,7 +18,7 @@ class SimpleIndexer(Executor):
     def __init__(
         self,
         match_args: Optional[Dict] = None,
-        key_length: Optional[int] = 64,
+        key_length: int = 64,
         override_storage_path: Optional[str] = None,
         **kwargs,
     ):
