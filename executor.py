@@ -18,14 +18,14 @@ class SimpleIndexer(Executor):
     def __init__(
         self,
         match_args: Optional[Dict] = None,
-        key_length: int = 64,
-        override_storage_path: str = None,
+        key_length: Optional[int] = 64,
+        override_storage_path: Optional[str] = None,
         **kwargs,
     ):
         """
         Initializer function for the simple indexer
         :param match_args: the arguments to `DocumentArray`'s match function
-        :param override_storage_path: the `path` argument to `DocumentArrayMemmap`'s match function
+        :param override_storage_path: the `path` argument to `DocumentArrayMemmap`'s constructor
         :param key_length: the `key_length` keyword argument to `DocumentArrayMemmap`'s constructor
         """
         super().__init__(**kwargs)
