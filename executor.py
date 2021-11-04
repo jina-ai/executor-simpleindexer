@@ -18,20 +18,41 @@ class SimpleIndexer(Executor):
     def __init__(
         self,
         match_args: Optional[Dict] = None,
+        check_embedding: bool = True,
         key_length: int = 64,
+        buffer_pool_size: int = 100_000,
         **kwargs,
     ):
         """
         Initializer function for the simple indexer
 
-        To specify storage path, use `workspace` attribute in executor `metas`
-        :param match_args: the arguments to `DocumentArray`'s match function
-        :param key_length: the `key_length` keyword argument to `DocumentArrayMemmap`'s constructor
+        To specify storage path, use `workspace` attribute in executor `metas`. Find more information at
+         https://docs.jina.ai/fundamentals/flow/add-exec-to-flow/#override-metas-configuration
+
+        :param match_args: the arguments to `DocumentArray`'s match function. Pass the arguments as a `Dict`. Find more
+            information about the `match` function at
+            https://docs.jina.ai/api/jina.types.arrays.neural_ops/?jina.types.arrays.neural_ops.DocumentArrayNeuralOpsMixin.match.
+        :param check_embedding: set to `False` (default: `True`) to skip the validation of embeddings for the indexed
+            Documents. The Documents without embedding will result in an `Error`. Please note that the validation will
+            significantly slow down performance when the index is large.
+        :param key_length: the `key_length` argument to `DocumentArrayMemmap`'s constructor, which stores the indexed
+            Documents. When storing the Documents, the Document `id` is truncated to `key_length` to save spaces. This
+            is useful for optimizing the index file size. By default, it is set to `64`.
+            Check more information at
+            https://docs.jina.ai/api/jina.types.arrays.memmap/?jina.types.arrays.memmap.DocumentArrayMemmap.
+        :param buffer_pool_size: the `buffer_pool_size` argument to `DocumentArrayMemmap`'s constructuor., which stores
+            the indexed Documents. During querying, the embeddings of the indexed Documents are cached in a buffer pool.
+            `buffer_pool_size` sets the number of Documents to be cached. Make sure it is larger than the total number
+            of indexed Documents to avoid repeating loading embeddings. By default, it is set to `100000`.
+            Check more information at
+            https://docs.jina.ai/api/jina.types.arrays.memmap/?jina.types.arrays.memmap.DocumentArrayMemmap.
         """
         super().__init__(**kwargs)
 
         self._match_args = match_args or {}
-        self._storage = DocumentArrayMemmap(self.workspace, key_length = key_length)
+        self._storage = DocumentArrayMemmap(
+            self.workspace, key_length=key_length, buffer_pool_size=buffer_pool_size)
+        self._check_embedding = self._check_embedding() if check_embedding else None
         self.logger = JinaLogger(self.metas.name)
 
     @requests(on='/index')
@@ -67,7 +88,7 @@ class SimpleIndexer(Executor):
 
         match_args = SimpleIndexer._filter_parameters(docs, match_args)
 
-        docs.match(self._storage, filter_fn=self._filter_fn(), **match_args)
+        docs.match(self._storage, filter_fn=self._check_embedding, **match_args)
 
     @staticmethod
     def _filter_parameters(docs, match_args):
@@ -119,7 +140,7 @@ class SimpleIndexer(Executor):
         for doc in docs:
             doc.embedding = self._storage[doc.id].embedding
 
-    def _filter_fn(self):
+    def _check_embedding(self):
         shape = None
 
         def valid(doc):
