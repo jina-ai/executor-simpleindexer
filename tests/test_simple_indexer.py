@@ -1,11 +1,11 @@
-import numpy as np
-import pytest
 import shutil
 from copy import deepcopy
-from jina import Document, DocumentArray, Executor, Flow
 from pathlib import Path
 
+import numpy as np
+import pytest
 from executor import SimpleIndexer
+from jina import Document, DocumentArray, Executor, Flow
 
 
 def assert_document_arrays_equal(arr1, arr2):
@@ -195,15 +195,14 @@ def test_unexpected_kwargs(tmp_path, docs):
     assert len(docs[0].matches) == 1
 
 
-def test_inavlid_embedding_indices(tmp_path, docs):
+def test_invalid_embedding_indices(tmp_path, docs):
     metas = {'workspace': str(tmp_path / 'workspace')}
     indexer = SimpleIndexer(metas=metas)
     indexer.index(docs)
     indexer.index(DocumentArray([Document(), Document(embedding=np.array([1]))]))
     query = DocumentArray([Document(embedding=np.array([1, 0, 0, 0]))])
-    indexer.search(query, match_args={'limit': len(indexer._storage)})
-    # added two invalid docs to index and they should be filtered out, hence subtract 2
-    assert len(query[0].matches) == len(indexer._storage) - 2
+    with pytest.raises(ValueError):
+        indexer.search(query, match_args={'limit': len(indexer._storage)})
 
 
 def test_invalid_embedding_query(tmp_path, docs):
@@ -211,8 +210,5 @@ def test_invalid_embedding_query(tmp_path, docs):
     indexer = SimpleIndexer(metas=metas)
     indexer.index(docs)
     indexer.index(DocumentArray([Document(), Document(embedding=np.array([1]))]))
-    with pytest.raises(
-        ValueError,
-        match='shapes \(1,2\) and \(4,6\) not aligned: 2 \(dim 1\) != 4 \(dim 0\)',
-    ):
+    with pytest.raises(ValueError):
         indexer.search(DocumentArray([Document(embedding=np.array([1, 0]))]))

@@ -67,7 +67,7 @@ class SimpleIndexer(Executor):
 
         match_args = SimpleIndexer._filter_parameters(docs, match_args)
 
-        docs.match(self._storage, filter_fn=self._filter_fn(), **match_args)
+        docs.match(self._storage, **match_args)
 
     @staticmethod
     def _filter_parameters(docs, match_args):
@@ -118,15 +118,3 @@ class SimpleIndexer(Executor):
 
         for doc in docs:
             doc.embedding = self._storage[doc.id].embedding
-
-    def _filter_fn(self):
-        shape = None
-
-        def valid(doc):
-            nonlocal shape
-            if doc.embedding is None:
-                return False
-            shape = shape or doc.embedding.shape
-            return shape == doc.embedding.shape
-
-        return valid
