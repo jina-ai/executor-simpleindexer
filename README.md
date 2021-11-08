@@ -44,6 +44,8 @@ with f:
         parameters={'limit': 100})
 ```
 
+**WARNING**: `SimpleIndexer` does not filter out Documents without embeddings or with embeddings of a wrong shape. If such data is indexed, the SimpleIndexer workspace will have to be deleted and re-built. Make sure your Flow filters these out with whatever business logic required.
+
 ## Used-by
 
 - [Crossmodal Search for ImageNet](https://github.com/jina-ai/example-crossmodal-search)
