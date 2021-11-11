@@ -155,6 +155,8 @@ def test_search(tmpdir, metric, docs):
     indexer.search(search_docs)
     for i in range(len(docs)):
         assert search_docs[i].matches[0].id == f'doc{i + 1}'
+        assert sorted([m.scores['euclidean'].value for m in search_docs[0].matches]) \
+               == [m.scores['euclidean'].value for m in search_docs[0].matches]
         assert len(search_docs[i].matches) == len(docs)
 
     # test search with top_k/limit = 1
