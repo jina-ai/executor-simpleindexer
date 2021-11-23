@@ -1,6 +1,6 @@
+import inspect
 from copy import deepcopy
 from typing import Dict, Optional
-import inspect
 
 from jina import DocumentArray, Executor, requests
 from jina.logging.logger import JinaLogger
@@ -27,19 +27,26 @@ class SimpleIndexer(Executor):
 
         To specify storage path, use `workspace` attribute in executor `metas`
         :param match_args: the arguments to `DocumentArray`'s match function
-        :param key_length: the `key_length` keyword argument to `DocumentArrayMemmap`'s constructor
-        :param buffer_pool_size: the `buffer_pool_size` argument to `DocumentArrayMemmap`'s constructuor., which stores
-            the indexed Documents. During querying, the embeddings of the indexed Documents are cached in a buffer pool.
-            `buffer_pool_size` sets the number of Documents to be cached. Make sure it is larger than the total number
-            of indexed Documents to avoid repeating loading embeddings. By default, it is set to `100000`.
+        :param key_length: the `key_length` keyword argument to
+        `DocumentArrayMemmap`'s constructor
+        :param buffer_pool_size: the `buffer_pool_size` argument to
+        `DocumentArrayMemmap`'s constructuor., which stores
+            the indexed Documents. During querying, the embeddings of the indexed
+            Documents are cached in a buffer pool.
+            `buffer_pool_size` sets the number of Documents to be cached. Make sure
+            it is larger than the total number
+            of indexed Documents to avoid repeating loading embeddings. By default,
+            it is set to `100000`.
             Check more information at
-            https://docs.jina.ai/api/jina.types.arrays.memmap/?jina.types.arrays.memmap.DocumentArrayMemmap.
+            https://docs.jina.ai/api/jina.types.arrays.memmap/?jina.types.arrays
+            .memmap.DocumentArrayMemmap.
         """
         super().__init__(**kwargs)
 
         self._match_args = match_args or {}
         self._storage = DocumentArrayMemmap(
-            self.workspace, key_length = key_length, buffer_pool_size = buffer_pool_size)
+            self.workspace, key_length=key_length, buffer_pool_size=buffer_pool_size
+        )
         self.logger = JinaLogger(self.metas.name)
 
     @requests(on='/index')
@@ -74,8 +81,25 @@ class SimpleIndexer(Executor):
             match_args.update(parameters)
 
         match_args = SimpleIndexer._filter_parameters(docs, match_args)
+        left_trav_path = match_args.get('traversal_ldarray')
+        # if it's 'r' we would just be duplicating
+        if left_trav_path and left_trav_path != 'r':
+            left_trav_docs = DocumentArray(docs.traverse_flat(left_trav_path))
+            match_args.pop('traversal_ldarray')
+        else:
+            left_trav_docs = docs
 
-        docs.match(self._storage, **match_args)
+        right_trav_path = match_args.get('traversal_rdarray')
+        # if it's 'r' we would just be duplicating
+        if right_trav_path and right_trav_path != 'r':
+            right_trav_docs = DocumentArray(
+                self._storage.traverse_flat(right_trav_path)
+            )
+            match_args.pop('traversal_rdarray')
+        else:
+            right_trav_docs = self._storage
+
+        left_trav_docs.match(right_trav_docs, **match_args)
 
     @staticmethod
     def _filter_parameters(docs, match_args):

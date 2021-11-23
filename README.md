@@ -25,18 +25,18 @@ Find more information about how to override `metas` attributes at [Jina Docs](ht
 The [recursive structures](https://docs.jina.ai/fundamentals/document/document-api/#recursive-nested-document) of Documents can be quite useful to represent the Documents at different semantic granularity. 
 For example, indexing PDF files stored as Documents, 
 you might have the whole PDF file stored as a `root` Document and have each sentence stored as `chunks`. Assuming that the embeddings are calculated for the sentences, 
-you will want to choose the embeddings from `chunks` of the indexed Documents when comparing with the query embeddings. This can be configured by setting `traversal_rdarray=('c',)`. `'c'` denotes the `chunks`. 
-As for the query Documents, you will usually to use the `embedding` of the `root` Document and set `traversal_ldrray=('r', )`. `'r'` denotes the `root`. 
+you will want to choose the embeddings from `chunks` of the indexed Documents when comparing with the query embeddings. This can be configured by setting `traversal_rdarray='c'`. `'c'` denotes the `chunks`. 
+As for the query Documents, you will usually to use the `embedding` of the `root` Document and set `traversal_ldrray='r'`. `'r'` denotes the `root`. 
 
-By default, both `traversal_ldarray` and `traversal_rdarray` is set to `('r',)` so that the embedding is retrieved from `root` from both the querying and indexed Document. Both configurations can be done by overriding the `with` arguments. Find more information about the `match_args` at [here](https://docs.jina.ai/api/jina.types.arrays.mixins.match/?module-jina.types.arrays.mixins.match).
+By default, both `traversal_ldarray` and `traversal_rdarray` is set to `'r'` so that the embedding is retrieved from `root` from both the querying and indexed Document. Both configurations can be done by overriding the `with` arguments. Find more information about the `match_args` at [here](https://docs.jina.ai/api/jina.types.arrays.mixins.match/?module-jina.types.arrays.mixins.match).
 
 ```python
 f =  Flow().add(
     uses='jinahub://SimpleIndexer',
     uses_with={
         'match_args': {
-            'traversal_rdarray': ('c',),
-            'traversal_ldarray': ('r',)}})
+            'traversal_rdarray': 'c',
+            'traversal_ldarray': 'r'}})
 ```
 
 ### Check embeddings

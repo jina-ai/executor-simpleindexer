@@ -155,8 +155,9 @@ def test_search(tmpdir, metric, docs):
     indexer.search(search_docs)
     for i in range(len(docs)):
         assert search_docs[i].matches[0].id == f'doc{i + 1}'
-        assert sorted([m.scores['euclidean'].value for m in search_docs[0].matches]) \
-               == [m.scores['euclidean'].value for m in search_docs[0].matches]
+        assert sorted(
+            [m.scores['euclidean'].value for m in search_docs[0].matches]
+        ) == [m.scores['euclidean'].value for m in search_docs[0].matches]
         assert len(search_docs[i].matches) == len(docs)
 
     # test search with top_k/limit = 1
@@ -214,3 +215,78 @@ def test_invalid_embedding_query(tmp_path, docs):
     indexer.index(DocumentArray([Document(), Document(embedding=np.array([1]))]))
     with pytest.raises(ValueError):
         indexer.search(DocumentArray([Document(embedding=np.array([1, 0]))]))
+
+
+def test_traversal(tmp_path):
+    # lets mock a sentencizer with cc level Docs
+    # and then search with Docs
+    c_text = 'I am chunk'
+    c_emb = np.array([1, 2, 3])
+    cc_text = 'I am chunk of chunk'
+    cc_emb = np.array([4, 5, 6])
+    r_text = 'I am root'
+    r_emb = np.array([7, 8, 9])
+    index_docs = DocumentArray(
+        [
+            Document(
+                content=r_text,
+                embedding=r_emb,
+                chunks=DocumentArray(
+                    [
+                        Document(
+                            content=c_text,
+                            embedding=c_emb,
+                            chunks=DocumentArray(
+                                [
+                                    Document(content=cc_text, embedding=cc_emb),
+                                    Document(content=cc_text, embedding=cc_emb),
+                                ]
+                            ),
+                        ),
+                        Document(
+                            content=c_text,
+                            embedding=c_emb,
+                            chunks=DocumentArray(
+                                [Document(content=cc_text, embedding=cc_emb)]
+                            ),
+                        ),
+                    ]
+                ),
+            ),
+            Document(
+                content=r_text,
+                embedding=r_emb,
+                chunks=DocumentArray(
+                    [
+                        Document(
+                            content=c_text,
+                            embedding=c_emb,
+                        ),
+                    ]
+                ),
+            ),
+            Document(
+                content=r_text,
+                embedding=r_emb,
+                chunks=DocumentArray(
+                    [
+                        Document(
+                            content=c_text,
+                            embedding=c_emb,
+                            chunks=DocumentArray(
+                                [Document(content=cc_text, embedding=cc_emb)]
+                            ),
+                        )
+                    ]
+                ),
+            ),
+        ]
+    )
+    metas = {'workspace': str(tmp_path / 'workspace')}
+    indexer = SimpleIndexer(metas=metas)
+    indexer.index(index_docs)
+    query = DocumentArray([Document(embedding=np.array([1, 2, 3]))])
+    indexer.search(
+        query, parameters={'traversal_rdarray': 'cc', 'traversal_ldarray': 'r'}
+    )
+    assert len(query[0].matches) == 4
