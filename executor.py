@@ -81,21 +81,19 @@ class SimpleIndexer(Executor):
             match_args.update(parameters)
 
         match_args = SimpleIndexer._filter_parameters(docs, match_args)
-        left_trav_path = match_args.get('traversal_ldarray')
+        left_trav_path = match_args.pop('traversal_ldarray', None)
         # if it's 'r' we would just be duplicating
         if left_trav_path and left_trav_path != 'r':
             left_trav_docs = DocumentArray(docs.traverse_flat(left_trav_path))
-            match_args.pop('traversal_ldarray')
         else:
             left_trav_docs = docs
 
-        right_trav_path = match_args.get('traversal_rdarray')
+        right_trav_path = match_args.pop('traversal_rdarray', None)
         # if it's 'r' we would just be duplicating
         if right_trav_path and right_trav_path != 'r':
             right_trav_docs = DocumentArray(
                 self._storage.traverse_flat(right_trav_path)
             )
-            match_args.pop('traversal_rdarray')
         else:
             right_trav_docs = self._storage
 
