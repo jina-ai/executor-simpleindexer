@@ -4,7 +4,7 @@ from typing import Dict, Optional
 
 from jina import DocumentArray, Executor, requests
 from jina.logging.logger import JinaLogger
-from jina.types.arrays.memmap import DocumentArrayMemmap
+from docarray.memmap import DocumentArrayMemmap
 
 
 class SimpleIndexer(Executor):
