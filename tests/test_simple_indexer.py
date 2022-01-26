@@ -52,17 +52,18 @@ def test_flow(tmpdir):
     )
 
     with f:
-        resp = f.post(
+        f.post(
             on='/index',
             inputs=[Document(id='a', embedding=np.array([1]))],
             return_results=True,
         )
-        resp = f.post(
+
+        docs = f.post(
             on='/search',
             inputs=[Document(embedding=np.array([1]))],
             return_results=True,
         )
-        assert resp[0].docs[0].matches[0].id == 'a'
+        assert docs[0].matches[0].id == 'a'
 
 
 def test_fill_embeddings(tmpdir):
@@ -82,8 +83,9 @@ def test_load(tmpdir, docs):
     metas = {'workspace': str(tmpdir)}
     indexer1 = SimpleIndexer(metas=metas)
     indexer1.index(docs)
+    indexer1.dump()
     indexer2 = SimpleIndexer(metas=metas)
-    assert_document_arrays_equal(indexer2._storage, docs)
+    assert_document_arrays_equal(indexer2._index, docs)
 
 
 def test_index(tmpdir, docs):
@@ -92,13 +94,13 @@ def test_index(tmpdir, docs):
     # test general/normal case
     indexer = SimpleIndexer(metas=metas)
     indexer.index(docs)
-    assert_document_arrays_equal(indexer._storage, docs)
+    assert_document_arrays_equal(indexer._index, docs)
 
     # test index empty docs
     shutil.rmtree(tmpdir)
     indexer = SimpleIndexer(metas=metas)
     indexer.index(DocumentArray())
-    assert not indexer._storage
+    assert not indexer._index
 
 
 def test_delete(tmpdir, docs):
@@ -107,26 +109,26 @@ def test_delete(tmpdir, docs):
     # index docs first
     indexer = SimpleIndexer(metas=metas)
     indexer.index(docs)
-    assert_document_arrays_equal(indexer._storage, docs)
+    assert_document_arrays_equal(indexer._index, docs)
 
     # delete empty docs
     indexer.delete({})
-    assert_document_arrays_equal(indexer._storage, docs)
+    assert_document_arrays_equal(indexer._index, docs)
 
     # delete first 3 docs
     parameters = {'ids': [f'doc{i}' for i in range(1, 4)]}
     indexer.delete(parameters)
-    assert_document_arrays_equal(indexer._storage, docs[3:])
+    assert_document_arrays_equal(indexer._index, docs[3:])
 
     # delete the rest of the docs stored
     parameters = {'ids': [f'doc{i}' for i in range(4, 7)]}
     indexer.delete(parameters)
-    assert not indexer._storage
+    assert not indexer._index
 
     # delete from empty storage
     parameters = {'ids': [f'doc{i}' for i in range(4, 7)]}
     indexer.delete(parameters)
-    assert not indexer._storage
+    assert not indexer._index
 
 
 def test_update(tmpdir, docs, update_docs):
@@ -135,12 +137,12 @@ def test_update(tmpdir, docs, update_docs):
     # index docs first
     indexer = SimpleIndexer(metas=metas)
     indexer.index(docs)
-    assert_document_arrays_equal(indexer._storage, docs)
+    assert_document_arrays_equal(indexer._index, docs)
 
     # update first doc
     indexer.update(update_docs)
-    assert indexer._storage[0].id == 'doc1'
-    assert (indexer._storage[0].embedding == [0, 0, 0, 1]).all()
+    assert indexer._index[0].id == 'doc1'
+    assert (indexer._index[0].embedding == [0, 0, 0, 1]).all()
 
 
 @pytest.mark.parametrize('metric', ['euclidean', 'cosine'])
@@ -205,7 +207,7 @@ def test_invalid_embedding_indices(tmp_path, docs):
     indexer.index(DocumentArray([Document(), Document(embedding=np.array([1]))]))
     query = DocumentArray([Document(embedding=np.array([1, 0, 0, 0]))])
     with pytest.raises(ValueError):
-        indexer.search(query, match_args={'limit': len(indexer._storage)})
+        indexer.search(query, match_args={'limit': len(indexer._index)})
 
 
 def test_invalid_embedding_query(tmp_path, docs):
@@ -215,78 +217,3 @@ def test_invalid_embedding_query(tmp_path, docs):
     indexer.index(DocumentArray([Document(), Document(embedding=np.array([1]))]))
     with pytest.raises(ValueError):
         indexer.search(DocumentArray([Document(embedding=np.array([1, 0]))]))
-
-
-def test_traversal(tmp_path):
-    # lets mock a sentencizer with cc level Docs
-    # and then search with Docs
-    c_text = 'I am chunk'
-    c_emb = np.array([1, 2, 3])
-    cc_text = 'I am chunk of chunk'
-    cc_emb = np.array([4, 5, 6])
-    r_text = 'I am root'
-    r_emb = np.array([7, 8, 9])
-    index_docs = DocumentArray(
-        [
-            Document(
-                content=r_text,
-                embedding=r_emb,
-                chunks=DocumentArray(
-                    [
-                        Document(
-                            content=c_text,
-                            embedding=c_emb,
-                            chunks=DocumentArray(
-                                [
-                                    Document(content=cc_text, embedding=cc_emb),
-                                    Document(content=cc_text, embedding=cc_emb),
-                                ]
-                            ),
-                        ),
-                        Document(
-                            content=c_text,
-                            embedding=c_emb,
-                            chunks=DocumentArray(
-                                [Document(content=cc_text, embedding=cc_emb)]
-                            ),
-                        ),
-                    ]
-                ),
-            ),
-            Document(
-                content=r_text,
-                embedding=r_emb,
-                chunks=DocumentArray(
-                    [
-                        Document(
-                            content=c_text,
-                            embedding=c_emb,
-                        ),
-                    ]
-                ),
-            ),
-            Document(
-                content=r_text,
-                embedding=r_emb,
-                chunks=DocumentArray(
-                    [
-                        Document(
-                            content=c_text,
-                            embedding=c_emb,
-                            chunks=DocumentArray(
-                                [Document(content=cc_text, embedding=cc_emb)]
-                            ),
-                        )
-                    ]
-                ),
-            ),
-        ]
-    )
-    metas = {'workspace': str(tmp_path / 'workspace')}
-    indexer = SimpleIndexer(metas=metas)
-    indexer.index(index_docs)
-    query = DocumentArray([Document(embedding=np.array([1, 2, 3]))])
-    indexer.search(
-        query, parameters={'traversal_rdarray': 'cc', 'traversal_ldarray': 'r'}
-    )
-    assert len(query[0].matches) == 4
