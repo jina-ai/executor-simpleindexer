@@ -31,21 +31,8 @@ class SimpleIndexer(Executor):
 
         To specify storage path, use `workspace` attribute in executor `metas`
         :param match_args: the arguments to `DocumentArray`'s match function
-        :param key_length: the `key_length` keyword argument to
-        `DocumentArrayMemmap`'s constructor
         :param protocol: serialisation protocol for disk access
         :param compress: compression algorithm for disk access
-        :param buffer_pool_size: the `buffer_pool_size` argument to
-        `DocumentArrayMemmap`'s constructuor., which stores
-            the indexed Documents. During querying, the embeddings of the indexed
-            Documents are cached in a buffer pool.
-            `buffer_pool_size` sets the number of Documents to be cached. Make sure
-            it is larger than the total number
-            of indexed Documents to avoid repeating loading embeddings. By default,
-            it is set to `100000`.
-            Check more information at
-            https://docs.jina.ai/api/jina.types.arrays.memmap/?jina.types.arrays
-            .memmap.DocumentArrayMemmap.
         """
         super().__init__(**kwargs)
 
