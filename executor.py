@@ -143,19 +143,14 @@ class SimpleIndexer(Executor):
             doc.embedding = self._index[doc.id].embedding
 
     @requests(on='/dump')
-    def dump(self, docs: Optional[DocumentArray]=None, **kwargs):
+    def dump(self, **kwargs):
         """dump indexed Documents to disk
         """
-        if docs:
-            self._index.extend(docs)
         bytes = self._index.to_bytes(protocol=self.protocol, compress=self.compress)
         with open(os.path.join(self.workspace, SimpleIndexer.FILE_NAME), 'wb') as f:
             f.write(bytes)
 
     @requests(on='/load')
-    def load_from_disk(self, docs: Optional[DocumentArray]=None, **kwargs):
+    def load_from_disk(self, **kwargs):
         with open(os.path.join(self.workspace, SimpleIndexer.FILE_NAME), 'rb') as f:
             self._index = DocumentArray.from_bytes(f, protocol=self.protocol, compress=self.compress)
-        if docs:
-            self._index.extend(docs)
-
