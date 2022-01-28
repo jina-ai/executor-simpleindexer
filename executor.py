@@ -1,10 +1,8 @@
 import inspect
-from copy import deepcopy
 from typing import Dict, Optional
 import os
-import uuid
 
-from jina import DocumentArray, Document, Executor, requests
+from jina import DocumentArray, Executor, requests
 from jina.logging.logger import JinaLogger
 
 
@@ -22,8 +20,8 @@ class SimpleIndexer(Executor):
     def __init__(
         self,
         match_args: Optional[Dict] = None,
-        protocol: str = 'pickle-array',
-        compress: str = None,
+        protocol: Optional[str] = 'pickle-array',
+        compress: Optional[str] = None,
         **kwargs,
     ):
         """
