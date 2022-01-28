@@ -139,3 +139,7 @@ class SimpleIndexer(Executor):
     def load_from_disk(self, **kwargs):
         with open(os.path.join(self.workspace, SimpleIndexer.FILE_NAME), 'rb') as f:
             self._index = DocumentArray.from_bytes(f, protocol=self.protocol, compress=self.compress)
+
+    def close(self):
+        super().close()
+        self.dump()
