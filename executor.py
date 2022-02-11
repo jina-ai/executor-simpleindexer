@@ -20,7 +20,7 @@ class SimpleIndexer(Executor):
     def __init__(
         self,
         match_args: Optional[Dict] = None,
-        protocol: Optional[str] = 'pickle-array',
+        protocol: str = 'pickle-array',
         compress: Optional[str] = None,
         **kwargs,
     ):
@@ -29,7 +29,7 @@ class SimpleIndexer(Executor):
 
         To specify storage path, use `workspace` attribute in executor `metas`
         :param match_args: the arguments to `DocumentArray`'s match function
-        :param protocol: serialisation protocol for disk access
+        :param protocol: serialisation protocol for disk access: `pickle-array` or `protobuf-array`
         :param compress: compression algorithm for disk access
         """
         super().__init__(**kwargs)
