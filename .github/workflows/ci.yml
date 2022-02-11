@@ -4,4 +4,4 @@ on: [pull_request]
 
 jobs:
   call-external:
-    uses: jina-ai/workflows-executors/.github/workflows/ci.yml@dev-jina3bis
+    uses: jina-ai/workflows-executors/.github/workflows/ci.yml@master
