@@ -98,14 +98,11 @@ class SimpleIndexer(Executor):
         del self._index[deleted_ids]
 
     @requests(on='/update')
-    def update(self, docs: Optional[DocumentArray], **kwargs):
+    def update(self, docs: DocumentArray, **kwargs):
         """Update doc with the same id, if not present, append into storage
 
         :param docs: the documents to update
         """
-
-        if not docs:
-            return
 
         for doc in docs:
             try:
@@ -116,14 +113,11 @@ class SimpleIndexer(Executor):
                 )
 
     @requests(on='/fill_embedding')
-    def fill_embedding(self, docs: Optional[DocumentArray], **kwargs):
+    def fill_embedding(self, docs: DocumentArray, **kwargs):
         """retrieve embedding of Documents by id
 
         :param docs: DocumentArray to search with
         """
-        if not docs:
-            return
-
         for doc in docs:
             doc.embedding = self._index[doc.id].embedding
 
