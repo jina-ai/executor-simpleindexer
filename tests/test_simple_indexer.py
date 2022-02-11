@@ -125,11 +125,6 @@ def test_delete(tmpdir, docs):
     indexer.delete(parameters)
     assert not indexer._index
 
-    # delete from empty storage
-    parameters = {'ids': [f'doc{i}' for i in range(4, 7)]}
-    indexer.delete(parameters)
-    assert not indexer._index
-
 
 def test_update(tmpdir, docs, update_docs):
     metas = {'workspace': str(tmpdir)}
