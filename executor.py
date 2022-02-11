@@ -49,7 +49,7 @@ class SimpleIndexer(Executor):
     @requests(on='/index')
     def index(
         self,
-        docs: Optional['DocumentArray'] = None,
+        docs: 'DocumentArray',
         **kwargs,
     ):
         """All Documents to the DocumentArray
@@ -61,7 +61,7 @@ class SimpleIndexer(Executor):
     @requests(on='/search')
     def search(
         self,
-        docs: Optional['DocumentArray'] = None,
+        docs: 'DocumentArray' ,
         parameters: Optional[Dict] = None,
         **kwargs,
     ):
@@ -71,8 +71,6 @@ class SimpleIndexer(Executor):
         :param parameters: the runtime arguments to `DocumentArray`'s match
         function. They overwrite the original match_args arguments.
         """
-        if not docs:
-            return
         match_args = {**self._match_args, **parameters} if parameters is not None else self._match_args
         match_args = SimpleIndexer._filter_match_params(docs, match_args)
         docs.match(self._index, **match_args)
