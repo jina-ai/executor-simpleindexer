@@ -55,13 +55,11 @@ def test_flow(tmpdir):
         f.post(
             on='/index',
             inputs=[Document(id='a', embedding=np.array([1]))],
-            return_results=True,
         )
 
         docs = f.post(
             on='/search',
             inputs=[Document(embedding=np.array([1]))],
-            return_results=True,
         )
         assert docs[0].matches[0].id == 'a'
 
