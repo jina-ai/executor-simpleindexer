@@ -122,3 +122,9 @@ class SimpleIndexer(Executor):
         """
         for doc in docs:
             doc.embedding = self._index[doc.id].embedding
+
+    @requests(on='/clear')
+    def clear(self,**kwargs):
+        """clear the database
+        """
+        self._index.clear()

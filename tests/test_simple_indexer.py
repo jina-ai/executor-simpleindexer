@@ -209,3 +209,10 @@ def test_invalid_embedding_query(tmp_path, docs):
     indexer.index(DocumentArray([Document(), Document(embedding=np.array([1]))]))
     with pytest.raises(ValueError):
         indexer.search(DocumentArray([Document(embedding=np.array([1, 0]))]))
+
+def test_clear(tmp_path,docs):
+    metas = {'workspace': str(tmp_path / 'workspace')}
+    indexer = SimpleIndexer(metas=metas)
+    indexer.index(docs)
+    indexer.clear()
+    assert len(indexer._index) == 0
