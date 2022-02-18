@@ -76,6 +76,7 @@ class SimpleIndexer(Executor):
             if parameters is not None
             else self._match_args
         )
+
         match_args = SimpleIndexer._filter_match_params(docs, match_args)
         docs.match(self._index, **match_args)
 
