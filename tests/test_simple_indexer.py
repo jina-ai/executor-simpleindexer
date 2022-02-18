@@ -73,7 +73,7 @@ def test_fill_embeddings(tmpdir):
     indexer.fill_embedding(search_docs)
     assert search_docs['a'].embedding is not None
 
-    with pytest.raises(KeyError, match="'b'"):
+    with pytest.raises(KeyError, match="`b`"):
         indexer.fill_embedding(DocumentArray([Document(id='b')]))
 
 
@@ -81,8 +81,7 @@ def test_load(tmpdir, docs):
     metas = {'workspace': str(tmpdir)}
     indexer1 = SimpleIndexer(metas=metas)
     indexer1.index(docs)
-    indexer1.dump()
-    indexer2 = SimpleIndexer(metas=metas)
+    indexer2 = SimpleIndexer(metas=metas, table_name=indexer1.table_name)
     assert_document_arrays_equal(indexer2._index, docs)
 
 

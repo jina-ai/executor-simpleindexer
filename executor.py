@@ -6,7 +6,6 @@ from jina import DocumentArray, Executor, requests
 from jina.logging.logger import JinaLogger
 
 
-
 class SimpleIndexer(Executor):
     """
     A simple indexer that stores all the Document data together in a DocumentArray,
@@ -15,13 +14,12 @@ class SimpleIndexer(Executor):
     To be used as a unified indexer, combining both indexing and searching
     """
 
-    FILE_NAME = 'index.bin'
+    FILE_NAME = 'index.db'
 
     def __init__(
         self,
         match_args: Optional[Dict] = None,
-        protocol: str = 'pickle-array',
-        compress: Optional[str] = None,
+        table_name: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -29,22 +27,24 @@ class SimpleIndexer(Executor):
 
         To specify storage path, use `workspace` attribute in executor `metas`
         :param match_args: the arguments to `DocumentArray`'s match function
-        :param protocol: serialisation protocol for disk access: `pickle-array` or `protobuf-array`
-        :param compress: compression algorithm for disk access
+        :param table_name: name of the table to work with for the sqlite backend
         """
         super().__init__(**kwargs)
 
-        self.protocol = protocol
-        self.compress = compress
         self._match_args = match_args or {}
-        self._index = DocumentArray()
+        self._index = DocumentArray(
+            storage='sqlite',
+            config={
+                'connection': os.path.join(self.workspace, SimpleIndexer.FILE_NAME),
+                'table_name': table_name,
+            },
+        )  # with customize config
         self.logger = JinaLogger(self.metas.name)
-        try:
-            self.load_from_disk()
-        except FileNotFoundError:
-            self.logger.info(
-                f'no data found in the workspace'
-            )
+
+    @property
+    def table_name(self) -> str:
+        print("here")
+        return self._index._table_name
 
     @requests(on='/index')
     def index(
@@ -61,7 +61,7 @@ class SimpleIndexer(Executor):
     @requests(on='/search')
     def search(
         self,
-        docs: 'DocumentArray' ,
+        docs: 'DocumentArray',
         parameters: Optional[Dict] = None,
         **kwargs,
     ):
@@ -71,7 +71,11 @@ class SimpleIndexer(Executor):
         :param parameters: the runtime arguments to `DocumentArray`'s match
         function. They overwrite the original match_args arguments.
         """
-        match_args = {**self._match_args, **parameters} if parameters is not None else self._match_args
+        match_args = (
+            {**self._match_args, **parameters}
+            if parameters is not None
+            else self._match_args
+        )
         match_args = SimpleIndexer._filter_match_params(docs, match_args)
         docs.match(self._index, **match_args)
 
@@ -82,7 +86,6 @@ class SimpleIndexer(Executor):
         args.discard('self')
         match_args = {k: v for k, v in match_args.items() if k in args}
         return match_args
-
 
     @requests(on='/delete')
     def delete(self, parameters: Dict, **kwargs):
@@ -118,20 +121,3 @@ class SimpleIndexer(Executor):
         """
         for doc in docs:
             doc.embedding = self._index[doc.id].embedding
-
-    @requests(on='/dump')
-    def dump(self, **kwargs):
-        """dump indexed Documents to disk
-        """
-        bytes = self._index.to_bytes(protocol=self.protocol, compress=self.compress)
-        with open(os.path.join(self.workspace, SimpleIndexer.FILE_NAME), 'wb') as f:
-            f.write(bytes)
-
-    @requests(on='/load')
-    def load_from_disk(self, **kwargs):
-        with open(os.path.join(self.workspace, SimpleIndexer.FILE_NAME), 'rb') as f:
-            self._index = DocumentArray.from_bytes(f, protocol=self.protocol, compress=self.compress)
-
-    def close(self):
-        super().close()
-        self.dump()
