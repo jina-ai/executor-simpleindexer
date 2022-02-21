@@ -43,7 +43,6 @@ class SimpleIndexer(Executor):
 
     @property
     def table_name(self) -> str:
-        print("here")
         return self._index._table_name
 
     @requests(on='/index')
