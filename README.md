@@ -1,43 +1,27 @@
 # SimpleIndexer
 
-`SimpleIndexer` uses `DocumentArrayMemmap` for indexing `Document`. It is recommended to be used in most of the simple use cases when you have less than one million `Document`. 
+`SimpleIndexer` uses an `SQLite`  database for indexing `Document`. It is recommended to be used in most of the simple use cases when you have less than one million `Document`. 
 
-`SimpleIndexer` leverages `DocumentArrayMmap`'s [`match`](https://docs.jina.ai/api/jina.types.arrays.mixins.match/?module-jina.types.arrays.mixins.match) function and searches the `k` nearest neighbors for the query `Document` based on their `embedding` field with a naive / brute force approach. By default, it calculates the `cosine` distance and returns all the indexed `Document`.
+`SimpleIndexer` leverages `DocumentArray`'s [`match`](https://docs.jina.ai/api/jina.types.arrays.mixins.match/?module-jina.types.arrays.mixins.match) function and searches the `k` nearest neighbors for the query `Document` based on their `embedding` field with a naive / brute force approach. By default, it calculates the `cosine` distance and returns all the indexed `Document`.
 
 
 ## Advanced Usages
 
 ### Configure the index directory
 
-`SimpleIndexer` stores the `Document` at the directory, which is specified by `workspace` field under the [`metas`](https://docs.jina.ai/fundamentals/executor/executor-built-in-features/#meta-attributes) attribute. 
+The sqlite database file in which the `SimpleIndexer` stores the `Document` could be specified by  the`workspace` field under the `metas` attribute. 
+The table in which it is stored could also be specified by the `table_name` filed under the `uses_with`parameters. By default the table name is random.
 You can override the default configuration as below,
 
 ```python
 f = Flow().add(
     uses='jinahub://SimpleIndexer',
-    uses_metas={'workspace': '/my/tmp_folder'})
+    uses_metas={'workspace': '/my/tmp_folder'},
+    uses_with = {'table_name': 'my_custon_table_name'}
+    )
 ```
 
 Find more information about how to override `metas` attributes at [Jina Docs](https://docs.jina.ai/fundamentals/flow/add-exec-to-flow/#override-metas-configuration)
-
-
-### Choose embeddings
-The [recursive structures](https://docs.jina.ai/fundamentals/document/document-api/#recursive-nested-document) of Documents can be quite useful to represent the Documents at different semantic granularity. 
-For example, indexing PDF files stored as Documents, 
-you might have the whole PDF file stored as a `root` Document and have each sentence stored as `chunks`. Assuming that the embeddings are calculated for the sentences, 
-you will want to choose the embeddings from `chunks` of the indexed Documents when comparing with the query embeddings. This can be configured by setting `traversal_rdarray='c'`. `'c'` denotes the `chunks`. 
-As for the query Documents, you will usually to use the `embedding` of the `root` Document and set `traversal_ldrray='r'`. `'r'` denotes the `root`. 
-
-By default, both `traversal_ldarray` and `traversal_rdarray` is set to `'r'` so that the embedding is retrieved from `root` from both the querying and indexed Document. Both configurations can be done by overriding the `with` arguments. Find more information about the `match_args` at [here](https://docs.jina.ai/api/jina.types.arrays.mixins.match/?module-jina.types.arrays.mixins.match).
-
-```python
-f =  Flow().add(
-    uses='jinahub://SimpleIndexer',
-    uses_with={
-        'match_args': {
-            'traversal_rdarray': 'c',
-            'traversal_ldarray': 'r'}})
-```
 
 ### Check embeddings
 
@@ -110,6 +94,15 @@ with f:
 ```
 
 
+
+### Clear the indexer
+
+You can easily clear the indexer by calling the `/clear` endpoint
+
+```python
+with f:
+    f.post('/clear')
+```
 ## Used-by
 
 - [Crossmodal Search for ImageNet](https://github.com/jina-ai/example-crossmodal-search)
