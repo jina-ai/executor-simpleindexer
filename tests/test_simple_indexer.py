@@ -214,5 +214,6 @@ def test_clear(tmp_path,docs):
     metas = {'workspace': str(tmp_path / 'workspace')}
     indexer = SimpleIndexer(metas=metas)
     indexer.index(docs)
+    assert len(indexer._index) > 0
     indexer.clear()
     assert len(indexer._index) == 0
