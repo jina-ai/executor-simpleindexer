@@ -9,13 +9,16 @@
 
 ### Configure the index directory
 
-`SimpleIndexer` stores the `Document` at the directory, which is specified by `workspace` field under the [`metas`](https://docs.jina.ai/fundamentals/executor/executor-built-in-features/#meta-attributes) attribute. 
+The sqlite database file in which the `SimpleIndexer` stores the `Document` could be specified by  the`workspace` field under the `metas` attribute. 
+The table in which it is stored could also be specified by the `table_name` filed under the `uses_with`parameters. By default the table name is random.
 You can override the default configuration as below,
 
 ```python
 f = Flow().add(
     uses='jinahub://SimpleIndexer',
-    uses_metas={'workspace': '/my/tmp_folder'})
+    uses_metas={'workspace': '/my/tmp_folder'},
+    uses_with = {'table_name': 'my_custon_table_name'}
+    )
 ```
 
 Find more information about how to override `metas` attributes at [Jina Docs](https://docs.jina.ai/fundamentals/flow/add-exec-to-flow/#override-metas-configuration)
@@ -91,6 +94,15 @@ with f:
 ```
 
 
+
+### Clear the indexer
+
+You can easily clear the indexer by calling the `/clear` endpoint
+
+```python
+with f:
+    f.post('/clear')
+```
 ## Used-by
 
 - [Crossmodal Search for ImageNet](https://github.com/jina-ai/example-crossmodal-search)
