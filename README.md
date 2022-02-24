@@ -76,10 +76,56 @@ f =  Flow().add(
              'use_scipy': True}})
 ```
 
-- For more details about overriding [`with`](https://docs.jina.ai/fundamentals/executor/executor-built-in-features/#yaml-interface) configurations, please refer to [here](https://docs.jina.ai/fundamentals/flow/add-exec-to-flow/#override-with-configuration).
-- You can find more about the `match` function at [here](https://docs.jina.ai/api/jina.types.arrays.mixins.match/?module-jina.types.arrays.mixins.match)
+- For more details about overriding configurations, please refer to [here](https://docs.jina.ai/fundamentals/executor/executor-in-flow/#special-executor-attributes).
+- You can find more about the `match` function at [here](https://docarray.jina.ai/api/docarray.array.mixins.match/#docarray.array.mixins.match.MatchMixin.match)
 
+### Traversing Documents
 
+In order to traverse at different levels when you `match`, DocumentArray allows the `@` syntax. 
+
+For the SimpleIndexer, this is exposed via the parameters:
+
+- `traversal_right`. How to traverse the DocumentArray **inside** the Indexer
+- `traversal_left`. How to traverse the DocumentArray you **search with**
+
+The Indexer has both of these set to the default of `@r`. These can be overridden at Executor initialization time or at search time.
+
+Example initialization:
+
+```python
+f =  Flow().add(
+    uses='jinahub://SimpleIndexer',
+    uses_with={
+        'traversal_right': '@c',
+        'traversal_left': '@r'
+    })
+```
+
+Example search:
+
+```python
+from jina import Client
+
+Client().search(
+    inputs=[Document(text='hello')], 
+    parameters={
+        {'traversal_left': '@r',
+        'traversal_right': '@r'}
+    })
+```
+
+The above will search on root level for both your search docs and the indexed docs.
+
+If you want to match on the 1st chunk level on the docs inside the Indexer, use 
+
+```python
+    parameters={
+        'traversal_right': '@c',
+        'traversal_left': '@r'
+        }
+```
+
+For a full guide on the syntax, check [here](https://docarray.jina.ai/fundamentals/documentarray/matching/).
 
 ### Configure the Search Behaviors on-the-fly
 
@@ -103,6 +149,7 @@ You can easily clear the indexer by calling the `/clear` endpoint
 with f:
     f.post('/clear')
 ```
+
 ## Used-by
 
 - [Crossmodal Search for ImageNet](https://github.com/jina-ai/example-crossmodal-search)
@@ -110,6 +157,3 @@ with f:
 - [Video In-Content Search](https://github.com/jina-ai/example-video-search/tree/feat-simple-tutorial)
 - [Similar Audio Search](https://github.com/jina-ai/example-audio-search)
 
-
-## Reference
-- [Indexers on Jina Hub](https://docs.jina.ai/advanced/experimental/indexers/)
