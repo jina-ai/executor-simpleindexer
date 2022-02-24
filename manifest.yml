@@ -1,5 +1,5 @@
 manifest_version: 1
 name: SimpleIndexer
-description: A simple indexer that leverages DocumentArray
+description: A simple indexer that leverages the built-in SQLite storage backend of DocumentArray  
 url: https://github.com/jina-ai/executor-simpleindexer
 keywords: [indexer]
