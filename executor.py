@@ -1,6 +1,6 @@
 import inspect
-from typing import Dict, Optional
 import os
+from typing import Dict, Optional
 
 from jina import DocumentArray, Executor, requests
 from jina.logging.logger import JinaLogger
@@ -20,6 +20,8 @@ class SimpleIndexer(Executor):
         self,
         match_args: Optional[Dict] = None,
         table_name: Optional[str] = None,
+        traversal_right: str = '@r',
+        traversal_left: str = '@r',
         **kwargs,
     ):
         """
@@ -28,6 +30,10 @@ class SimpleIndexer(Executor):
         To specify storage path, use `workspace` attribute in executor `metas`
         :param match_args: the arguments to `DocumentArray`'s match function
         :param table_name: name of the table to work with for the sqlite backend
+        :param traversal_right: the default traversal path for the indexer's
+        DocumentArray
+        :param traversal_left: the default traversal path for the query
+        DocumentArray
         """
         super().__init__(**kwargs)
 
@@ -40,6 +46,8 @@ class SimpleIndexer(Executor):
             },
         )  # with customize config
         self.logger = JinaLogger(self.metas.name)
+        self.default_traversal_right = traversal_right
+        self.default_traversal_left = traversal_left
 
     @property
     def table_name(self) -> str:
@@ -76,8 +84,12 @@ class SimpleIndexer(Executor):
             else self._match_args
         )
 
+        traversal_right = parameters.get(
+            'traversal_right', self.default_traversal_right
+        )
+        traversal_left = parameters.get('traversal_left', self.default_traversal_left)
         match_args = SimpleIndexer._filter_match_params(docs, match_args)
-        docs.match(self._index, **match_args)
+        docs[traversal_left].match(self._index[traversal_right], **match_args)
 
     @staticmethod
     def _filter_match_params(docs, match_args):
@@ -123,7 +135,6 @@ class SimpleIndexer(Executor):
             doc.embedding = self._index[doc.id].embedding
 
     @requests(on='/clear')
-    def clear(self,**kwargs):
-        """clear the database
-        """
+    def clear(self, **kwargs):
+        """clear the database"""
         self._index.clear()

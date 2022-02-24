@@ -32,6 +32,29 @@ def docs():
 
 
 @pytest.fixture
+def docs_with_chunks():
+    docs = DocumentArray(
+        [
+            Document(id='doc1', embedding=np.array([1, 0, 0, 0])),
+            Document(id='doc2', embedding=np.array([0, 1, 0, 0])),
+            Document(id='doc3', embedding=np.array([0, 0, 1, 0])),
+            Document(id='doc4', embedding=np.array([0, 0, 0, 1])),
+            Document(id='doc5', embedding=np.array([1, 0, 1, 0])),
+            Document(id='doc6', embedding=np.array([0, 1, 0, 1])),
+        ]
+    )
+    for d in docs:
+        d.chunks = DocumentArray(
+            [
+                Document(id=f'{d.id}_chunk1', embedding=np.array([1, 0, 0, 0])),
+                Document(id=f'{d.id}_chunk2', embedding=np.array([0, 1, 0, 0])),
+                Document(id=f'{d.id}_chunk3', embedding=np.array([0, 1, 0, 0])),
+            ]
+        )
+    return docs
+
+
+@pytest.fixture
 def update_docs():
     return DocumentArray(
         [
@@ -146,7 +169,7 @@ def test_search(tmpdir, metric, docs):
     indexer = SimpleIndexer(match_args=match_args, metas=metas)
     indexer.index(docs)
     search_docs = deepcopy(docs)
-    indexer.search(search_docs)
+    indexer.search(search_docs, {})
     for i in range(len(docs)):
         assert search_docs[i].matches[0].id == f'doc{i + 1}'
         assert sorted(
@@ -162,7 +185,7 @@ def test_search(tmpdir, metric, docs):
     # test search with default limit/top_k again
     # indexer._match_args should not change as a result of the previous operation
     # so expected length of matches should be the same as the first case
-    indexer.search(search_docs)
+    indexer.search(search_docs, {})
     for i in range(len(docs)):
         assert len(search_docs[i].matches) == len(docs)
 
@@ -170,12 +193,12 @@ def test_search(tmpdir, metric, docs):
     shutil.rmtree(tmpdir)
     indexer = SimpleIndexer(metas=metas)
     indexer.index(DocumentArray())
-    indexer.search(docs)
+    indexer.search(docs, {})
     for doc in docs:
         assert not doc.matches
 
     # test search empty docs
-    indexer.search(DocumentArray())
+    indexer.search(DocumentArray(), {})
 
 
 def test_empty_docs(tmp_path):
@@ -199,7 +222,7 @@ def test_invalid_embedding_indices(tmp_path, docs):
     indexer.index(DocumentArray([Document(), Document(embedding=np.array([1]))]))
     query = DocumentArray([Document(embedding=np.array([1, 0, 0, 0]))])
     with pytest.raises(ValueError):
-        indexer.search(query, match_args={'limit': len(indexer._index)})
+        indexer.search(query, parameters={'match_args': {'limit': len(indexer._index)}})
 
 
 def test_invalid_embedding_query(tmp_path, docs):
@@ -208,12 +231,45 @@ def test_invalid_embedding_query(tmp_path, docs):
     indexer.index(docs)
     indexer.index(DocumentArray([Document(), Document(embedding=np.array([1]))]))
     with pytest.raises(ValueError):
-        indexer.search(DocumentArray([Document(embedding=np.array([1, 0]))]))
+        indexer.search(DocumentArray([Document(embedding=np.array([1, 0]))]), {})
 
-def test_clear(tmp_path,docs):
+
+def test_clear(tmp_path, docs):
     metas = {'workspace': str(tmp_path / 'workspace')}
     indexer = SimpleIndexer(metas=metas)
     indexer.index(docs)
     assert len(indexer._index) > 0
     indexer.clear()
     assert len(indexer._index) == 0
+
+
+def test_chunks_retrieval_root(tmp_path, docs_with_chunks):
+    metas = {'workspace': str(tmp_path / 'workspace')}
+    indexer = SimpleIndexer(metas=metas)
+    indexer.index(docs_with_chunks)
+    # we search on chunk level and retrieve on root
+    search_docs = DocumentArray(
+        [
+            Document(id='search_doc1', embedding=np.array([1, 0, 0, 0])),
+        ]
+    )
+    indexer.search(
+        search_docs, parameters={'traversal_left': '@r', 'traversal_right': '@c'}
+    )
+    assert 'chunk' in search_docs[0].matches[0].id
+
+
+def test_chunks_retrieval_chunk(tmp_path, docs_with_chunks):
+    metas = {'workspace': str(tmp_path / 'workspace')}
+    indexer = SimpleIndexer(metas=metas)
+    indexer.index(docs_with_chunks)
+    # we search on chunk level and retrieve on root
+    search_docs = DocumentArray(
+        [
+            Document(id='search_doc1', embedding=np.array([1, 0, 0, 0])),
+        ]
+    )
+    indexer.search(
+        search_docs, parameters={'traversal_left': '@r', 'traversal_right': '@r'}
+    )
+    assert 'chunk' not in search_docs[0].matches[0].id
