@@ -5,6 +5,8 @@ from typing import Dict, Optional
 from jina import DocumentArray, Executor, requests
 from jina.logging.logger import JinaLogger
 
+TABLE_NAME = 'simple_indexer_table'
+
 
 class SimpleIndexer(Executor):
     """
@@ -19,7 +21,7 @@ class SimpleIndexer(Executor):
     def __init__(
         self,
         match_args: Optional[Dict] = None,
-        table_name: Optional[str] = None,
+        table_name: Optional[str] = TABLE_NAME,
         traversal_right: str = '@r',
         traversal_left: str = '@r',
         **kwargs,
