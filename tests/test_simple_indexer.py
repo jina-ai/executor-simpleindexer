@@ -104,7 +104,7 @@ def test_load(tmpdir, docs):
     metas = {'workspace': str(tmpdir)}
     indexer1 = SimpleIndexer(metas=metas)
     indexer1.index(docs)
-    indexer2 = SimpleIndexer(metas=metas, table_name=indexer1.table_name)
+    indexer2 = SimpleIndexer(metas=metas)
     assert_document_arrays_equal(indexer2._index, docs)
 
 

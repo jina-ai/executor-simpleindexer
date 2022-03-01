@@ -17,9 +17,8 @@ class Exec(Executor):
 
 def test_reload_keep_state(docs, tmp_path):
     metas = {'workspace': str(tmp_path / 'workspace')}
-    uses_with = {'table_name': 'test_reaload'}
 
-    f = Flow().add(uses=SimpleIndexer, uses_metas=metas, uses_with=uses_with)
+    f = Flow().add(uses=SimpleIndexer, uses_metas=metas)
 
     with f:
         f.index(docs)

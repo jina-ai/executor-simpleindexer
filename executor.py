@@ -19,7 +19,7 @@ class SimpleIndexer(Executor):
     def __init__(
         self,
         match_args: Optional[Dict] = None,
-        table_name: Optional[str] = None,
+        table_name: str = 'simple_indexer_table',
         traversal_right: str = '@r',
         traversal_left: str = '@r',
         **kwargs,
