@@ -13,8 +13,6 @@ on:
 
 jobs:
   call-external:
-    uses: jina-ai/workflows-executors/.github/workflows/cd.yml@master
+    uses: jina-ai/workflows-executors/.github/workflows/cd.yml@test-read-own-secret
     with:
       event_name: ${{ github.event_name }}
-    secrets:
-      secret: ${{ secrets.EXECUTOR_SECRET }}
