@@ -11,4 +11,3 @@ jobs:
     uses: jina-ai/workflows-executors/.github/workflows/ci.yml@platform-aware
     with:
         platform: ${{ matrix.platform }}
-        pytest: false
