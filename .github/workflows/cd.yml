@@ -13,8 +13,9 @@ on:
 
 jobs:
   call-external:
-    uses: jina-ai/workflows-executors/.github/workflows/cd.yml@master
+    uses: jina-ai/workflows-executors/.github/workflows/cd.yml@platform-aware
     with:
       event_name: ${{ github.event_name }}
+      platform: arm64,amd64
     secrets:
       jinahub_token: ${{ secrets.JINAHUB_TOKEN }}

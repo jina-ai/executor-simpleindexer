@@ -4,4 +4,10 @@ on: [pull_request]
 
 jobs:
   call-external:
-    uses: jina-ai/workflows-executors/.github/workflows/ci.yml@master
+    strategy:
+      matrix:
+        platform: [arm64, amd64]
+      fail-fast: false
+    uses: jina-ai/workflows-executors/.github/workflows/ci.yml@platform-aware
+    with:
+        platform: ${{ matrix.platform }}
